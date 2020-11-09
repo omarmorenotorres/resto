@@ -1,0 +1,442 @@
+swagger: "2.0"
+info:
+  description: "Esta es la especificación del API del proyecto Delilah Resto. Tenga en cuenta que para hacer cualquier acción deberá estar ogueado en el sistema, por ende es necesario que en los headers incluya el key user-token con el token correspondiente. Existen dos cuentas de usuario, los Admin (is_admin = 1, en la base de datos) y los Users (is_admin = 0, en la base de datos), dependiendo de cada uno podrá hacer ciertas acciones en el sistema"
+  version: "1.0.0"
+  title: "Delilah Resto"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "omar.moreno.torres@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:3000"
+basePath: "/api"
+tags:
+- name: "orders"
+  description: "Acciones sobre los pedidos del restaurante"
+  externalDocs:
+    description: "Descubre más acerca de los pedidos"
+    url: "localhost:3000"
+- name: "products"
+  description: "Acciones sobre los productos del restaurante"
+  externalDocs:
+    description: "Descubre más acerca de los productos"
+    url: "localhost:3000"
+- name: "users"
+  description: "Operaciones acerca de las cuentas de usuaro"
+  externalDocs:
+    description: "Descubre más acerca de los usuarios"
+    url: "localhost:3000"
+schemes:
+- "https"
+- "http"
+paths:
+  /products:
+    get:
+      tags:
+      - "products"
+      summary: "Lista los productos y la información de estos"
+      description: "Debe estar correctamente logueado en el sistema para poder listar todos los productos y la información de éstos. <br><br>URL: http://localhost:3000/api/products"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Retorna la lista de productos del restaurante"
+        "400":
+          description: "Error en la petición"
+    post:
+      tags:
+      - "products"
+      summary: "Adiciona un nuevo producto en el restaurante"
+      description: "Para adicionar un nuevo producto deberá estar logueado en el sistema con una cuenta de tipo Admin, para ello use el endpoint de user/login, el cual generará un token, éste debe  incluirse dentro del header de la petición en postman. Use eclusivamente cuentas de administración para crear productos. En el body, use formato raw y especifique el formato de los datos en JSON. <br><br>URL: http://localhost:3000/api/products"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Objeto de producto para adicionar la restaurante"
+        required: true
+        schema:
+          $ref: "#/definitions/Order"
+      responses:
+        "200":
+          description: "El producto fué creado exitosamente"
+        "400":
+          description: "Error en la petición"
+        "403":
+          description: "No tienes permisoso de adminsitrador para ejecutar esta acción"
+        "422":
+          description: "Listado de errores en los datos de entrada"
+  /products/{productId}:
+    put:
+      tags:
+      - "products"
+      summary: "Actualizar un producto existente"
+      description: "Para poder actualizar la información de un producto debe estar logueado con una cuenta de tipo Admin, asegurese de incluir el key user-token correspondiente en los header de las peticiones en postman. Es una actualización por ID, por ende adidione el número del producto a la ruta especificada. <br><br>URL: http://localhost:3000/api/products/{productId}"
+      operationId: "updateProduct"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "productId"
+        in: path
+        description: "ID del producto que se desea editar"
+        required: true
+        type: integer
+        format: int64
+      - in: "body"
+        name: "body"
+        description: "Pet object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/Product"
+      responses:
+        "200":
+          description: "El product se ha actualizado exitosamente"
+        "403":
+          description: "No tienes permisos de administrador para ejecutar esta acción"
+        "404":
+          description: "Producto no encontrado"
+        "400":
+          description: "Error en la petición"
+    delete:
+      tags:
+      - "products"
+      summary: "Eliminar producto por ID"
+      description: "Para poder borrar un producto debe estar logueado con una cuenta de tipo Admin, asegurese de incluir el key user-token correspondiente en los header de las peticiones en postman. Es un borrado por ID, por ende adicione el número del producto a la ruta especificada. <br><br>URL: http://localhost:3000/api/products/{productId}"
+      operationId: "deleteProduct"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "productId"
+        in: "path"
+        description: "ID del producto que se desea eliminar"
+        required: true
+        type: "integer"
+        minimum: 1.0
+        format: "int64"
+      responses:
+        "200":
+          description: "El producto se ha eliminado correctamente"
+        "403":
+          description: "No tienes permisos de administrador para ejecutar esta acción"
+        "404":
+          description: "El producto no existe"
+  /orders:
+    get:
+      tags:
+      - "orders"
+      summary: "Lista los pedidos y la información de estos"
+      description: "Debe estar correctamente logueado en el sistema para poder listar los productos y la información de éstos.Con un usuario Admin, podrá listar todos los pedidos que existan en la base de datos. Con una cuenta de tipo User, sólamente listará los pedidos correspondiente al id de usuario con el cual se inició sesión. Asegurese de incluir el key user-token del usuario correspondiente, en los headers de la petición en postman. <br><br>URL: http://localhost:3000/api/orders"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Operación exitosa. retorna lista de pedidos y la información de cada una de las filas en la base de datos"
+        "400":
+          description: "Error en la petición"
+        "404":
+          description: "Pedido no encontrado"
+    post:
+      tags:
+      - "orders"
+      summary: "Adiciona un nuevo pedido en el restaurante"
+      description: "Para adicionar un nuevo pedido deberá estar logueado en el sistema, para ello use el endpoint de user/login, el cual generará un token, el cual debe  incluir como key dentro del header de la petición en postman. En el body, use formato raw, y verifique el ejemplo.<br><br>Se puede agregar más de un producto a una orden de pedido.<br><br>URL: http://localhost:3000/api/orders/"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Objeto para adiciona run pedido  al restaurante"
+        required: true
+        schema:
+          $ref: "#/definitions/Order"
+      responses:
+        "200":
+          description: "Recibimos tu pedido {User} , gracias por pedir a Delilah. Puedes seguir tu pedido para saber donde está."
+        "404":
+          description: "Alguno de los productos dentro de la orden no existen en nuestra base de datos, o el usuario no registra dentro de nuestra plataforma. Por favor revisar la información enviada"
+        "422":
+          description: "Listado de errores en los datos de entrada"
+  /orders/{orderId}:
+    put:
+      tags:
+      - "orders"
+      summary: "Actualizar un pedido existente"
+      description: "Para poder actualizar un pedido debe estar logueado con una cuenta de tipo Admin, asegurese de incluir el key user-token dentro del header de la petición postman. <br><br>URL: http://localhost:3000/api/orders/{orderId}"
+      operationId: "updateOrder"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "orderId"
+        in: "path"
+        description: "ID del pedido que se desea editar"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "El producto se ha actualizado exitosamente"
+        "422":
+          description: "Listado de errores en los valores de entrada"
+        "403":
+          description: "No tienes permisos de administrador para ejecutar esta acción"
+        "404":
+          description: "El pedido con {orderId} no existe"
+        "400":
+          description: "Error en la petición"
+    delete:
+      tags:
+      - "orders"
+      summary: "Eliminar un pedido por ID"
+      description: "Para obtener una respuesta válida, pruebe las ID de números enteros con un valor entero positivo. Los valores negativos o no enteros generarán errores de API.<br><br>URL: http://localhost:3000/api/orders/{orderId}"
+      operationId: "deleteOrder"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "orderId"
+        in: "path"
+        description: "ID del pedido que se desea eliminar"
+        required: true
+        type: "integer"
+        minimum: 1.0
+        format: "int64"
+      responses:
+        "200":
+          description: "El pedido con {orderId} se ha eliminado correctamente"
+        "409":
+          description: "No se puede borrar este pedido"
+        "403":
+          description: "No tienes permisos de administrador para ejecutar esta acción"
+        "404":
+          description: "El pedido no existe"
+    get:
+      tags:
+      - "orders"
+      summary: "Endpoint que permite listar los datos de un pedido por ID"
+      description: "Debe estar correctamente logueado en el sistema para poder listar los productos y la información de éstos. Podrá listar la información del pedido correspondiente al id que se pase por parámetro en la url. Asegurese de incluir el key user-token del usuario correspondiente, en los headers de la petición en postman"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "orderId"
+        in: "path"
+        description: "ID del pedido que se desea revisar"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "Lista información de los pedidos"
+        "404":
+          description: "No existen pedidos para este usuario"
+  /users:
+    post:
+      tags:
+      - "users"
+      summary: "Endopint para crear un nuevo usuario"
+      description: "Endpoint para crear usuarios. Debe estar correctamente logueado desde cualquier cuenta. Es importante definir si el usuario va a hacer Admin o User <br><br> URL: http://localhost:3000/api/users"
+      operationId: "createUser"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created user object"
+        required: true
+        schema:
+          $ref: "#/definitions/User"
+      responses:
+        "200":
+          description: "Usuario creado exitosamente"
+        "409":
+          description: "Error en el formato de los datos"
+        "422":
+          description: "Listado de errores en los datos de entrada"
+    get:
+      tags:
+      - "users"
+      summary: "Endpoint para listar la información de usuarios"
+      description: "Endpoint por medio del caul se lista la información de usuarios. Para usarlo, debe estar logueado en el sistema. Y debe tener el key user-token en los headers de la petición. Si es una cuenta Admin podrá acceder a toda la información de todos los usuarios registrados en la base de datos. Si la cuenta es User, sólamente podrá acceder a la información más relevante de la cuenta correspondiente al login que se utilizo. <br/><br/> URL: http://localhost:3000/api/users"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "List of user object"
+        required: true
+        schema:
+          type: "array"
+          items:
+            $ref: "#/definitions/User"
+      responses:
+        default:
+          description: "successful operation"
+  /users/{userId}:
+    put:
+      tags:
+      - "users"
+      summary: "Actualizar la información de un usuario registrado"
+      description: "Para poder actualizar la información de un usuario debe estar logueado con una cuenta de tipo Admin, asegurese de incluir el key user-token dentro del header de la petición postman <br><br> URL: http://localhost:3000/api/users/{userId}"
+      operationId: "updateUser"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: path
+        description: ID del usuario que se desea editar
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: "Se ha actualizado exitosamente el usuario"
+        "422":
+          description: "Listado de errores en los valores de entrada"
+        "403":
+          description: "No tienes permisos de administrador para ejecutar esta acción"
+        "404":
+          description: "Usuario no encontrado"
+        "400":
+          description: "Error en la petición"
+    delete:
+      tags:
+      - "users"
+      summary: "Eliminar un usuario por ID"
+      description: "Para obtener una respuesta válida, pruebe las ID de números enteros con un valor entero positivo. Los valores negativos o no enteros generarán errores de API. <br><br>URL: http://localhost:3000/api/users/{userId}"
+      operationId: "deleteUser"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "ID del usuario que se desea eliminar"
+        required: true
+        type: "integer"
+        minimum: 1.0
+        format: "int64"
+      responses:
+        "200":
+          description: "Se ha borrado exitosamente el usuario"
+        "409":
+          description: "No se puede borrar este usuario"
+        "404":
+          description: "El usuario no existe"
+  /user/login:
+    post:
+      tags:
+      - "users"
+      summary: "Endpoint para loguearse en el sistema. "
+      description: "Tenga en cuenta que las acciones sobre las tablas de la base de datos tienen que hacerse con usuarios logueados, previamente registrados.<br><br> El endpoint retorna el token que es necesario agregarlo como key en los headers (user-token) para hacer las acciones dentro del sistema que se desen.<br><br>URL: http://localhost:3000/api/users/login"
+      operationId: "loginUser"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "email"
+        in: "query"
+        description: "The username definido en la cuenta para hacer login"
+        required: true
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "La contraseña correspondiente al username digitado"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "token"
+        "400":
+          description: "Error en usuario y/o contraseña"
+securityDefinitions:
+  petstore_auth:
+    type: "oauth2"
+    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
+    flow: "implicit"
+    scopes:
+      write:pets: "modify pets in your account"
+      read:pets: "read your pets"
+  api_key:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:
+  Order:
+    type: "object"
+    properties:
+      user_id:
+        type: "object"
+        format: "int64"
+        example: 21
+      payment_method:
+        type: "integer"
+        format: "int64"
+        example: "cash"
+      description:
+        type: "integer"
+        format: "int32"
+        example: "This is a new order"
+      data:
+        type: "array"
+        items:
+          type: "object"
+        example: [ {product_id: 2, amount: 1},{product_id: 5, amount: 2} ]    
+  User:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+        example: "jhon.doe"
+      password:
+        type: "string"
+        example: "12345"
+      full_name:
+        type: "string"
+        example: "Jhon Doe"
+      email:
+        type: "string"
+        example: "jhon.doe@gmail.com"
+      phone:
+        type: "string"
+        example: "555 3278"
+      delivery_address:
+        type: "string"
+        example: "Calle falsa 123"
+      is_admin:
+        type: "integer"
+        example: "1"
+        description: "definir si el usuario se va a comportar como Admin (1) o como User (0)"
+    xml:
+      name: "User"
+  Product:
+    type: "object"
+    required:
+    - "name"
+    - "price"
+    - "img-url"
+    properties:
+      name:
+        type: "string"
+        example: "Mexican Hot Dog"
+      price:
+        type: "integer"
+        example: 130
+      img_url:
+        type: "string"
+        example: "hotdog.png"
+      description:
+        type: "string"
+        example: "This is a delicious Mexican Hot Dog"
